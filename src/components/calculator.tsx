@@ -205,16 +205,30 @@ export function CalculatorWidget({ id, title, inputs, onCalculate, children }: C
   };
 
   const handleDownloadCSV = () => {
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + "Label,Value\n"
-      + results.map(r => `"${r.label}","${r.value}"`).join("\n");
-    const encodedUri = encodeURI(csvContent);
+    let csvContent = "Summary\nLabel,Value\n";
+    csvContent += results.map(r => `"${r.label}","${String(r.value).replace(/"/g, '""')}"`).join("\n");
+    csvContent += "\n\n";
+
+    // Schedule / Chart Data section
+    results.filter(r => r.chartData && r.chartData.length > 0).forEach((res) => {
+       csvContent += `${res.label} Schedule\n`;
+       const keys = Object.keys(res.chartData![0]);
+       csvContent += keys.join(",") + "\n";
+       res.chartData!.forEach(row => {
+          csvContent += keys.map(k => `"${String(row[k]).replace(/"/g, '""')}"`).join(",") + "\n";
+       });
+       csvContent += "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${id}-results.csv`);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${id}-schedule.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleExportPDF = async () => {

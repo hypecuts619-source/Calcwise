@@ -1,6 +1,49 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Search, Menu, X, Calculator, Globe, ChevronDown } from "lucide-react";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { Search, Menu, X, Calculator, Globe, ChevronDown, Share2, Check } from "lucide-react";
+
+export function ShareButton({ title, text, url = window.location.href, className = '' }: { title?: string, text?: string, url?: string, className?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title || document.title,
+          text: text || 'Check this out!',
+          url,
+        });
+      } catch (err) {
+        console.error('Share failed:', err);
+      }
+    } else {
+      handleCopy();
+    }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <button
+      onClick={handleShare}
+      className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 bg-secondary/20 text-secondary-foreground \${className}`}
+      title="Share"
+    >
+      {copied ? (
+        <Check className="h-4 w-4 mr-2 text-green-500" />
+      ) : (
+        <Share2 className="h-4 w-4 mr-2 opacity-70" />
+      )}
+      {copied ? 'Copied' : 'Share'}
+    </button>
+  );
+}
+
 import * as Icons from "lucide-react";
 import { CATEGORIES, CALCULATORS } from "../constants.ts";
 import { CalculatorMetadata } from "../types.ts";
@@ -10,6 +53,59 @@ import {
   SUPPORTED_CURRENCIES,
 } from "../context/CurrencyContext.tsx";
 import { LanguageSwitcher } from "./LanguageSwitcher.tsx";
+
+function Breadcrumbs() {
+  const location = useLocation();
+  const paths = location.pathname.split('/').filter(Boolean);
+
+  if (paths.length === 0) return null;
+
+  let breadcrumbList = [];
+  
+  if (paths[0] === 'category' && paths[1]) {
+    const cat = CATEGORIES.find(c => c.id === paths[1]);
+    if (cat) {
+      breadcrumbList.push({ name: 'Categories', path: '#' });
+      breadcrumbList.push({ name: cat.title, path: `/category/${cat.id}` });
+    }
+  } else if (paths[0] === 'calculator' && paths[1]) {
+    const calc = CALCULATORS.find(c => c.slug === paths[1]);
+    if (calc) {
+      const cat = CATEGORIES.find(c => c.id === calc.category);
+      if (cat) {
+        breadcrumbList.push({ name: cat.title, path: `/category/${cat.id}` });
+      }
+      breadcrumbList.push({ name: calc.title, path: `/calculator/${calc.slug}` });
+    }
+  } else {
+    // other static pages
+    breadcrumbList.push({ name: paths[0].charAt(0).toUpperCase() + paths[0].slice(1).replace('-', ' '), path: `/${paths[0]}` });
+    if (paths[1]) {
+       breadcrumbList.push({ name: paths[1].charAt(0).toUpperCase() + paths[1].slice(1).replace('-', ' '), path: `/${paths[0]}/${paths[1]}` });
+    }
+  }
+
+  return (
+    <nav className="flex items-center text-xs font-medium text-hint py-2 overflow-x-auto whitespace-nowrap hide-scrollbar border-t border-border/40">
+      <Link to="/" className="hover:text-primary transition-colors flex items-center">
+        <Icons.Home className="h-3 w-3 mr-1" />
+        Home
+      </Link>
+      {breadcrumbList.map((crumb, index) => (
+        <React.Fragment key={crumb.path}>
+          <Icons.ChevronRight className="h-3 w-3 mx-1.5 opacity-50 flex-shrink-0" />
+          {index === breadcrumbList.length - 1 ? (
+            <span className="text-body font-semibold truncate">{crumb.name}</span>
+          ) : (
+            <Link to={crumb.path} className="hover:text-primary transition-colors truncate">
+              {crumb.name}
+            </Link>
+          )}
+        </React.Fragment>
+      ))}
+    </nav>
+  );
+}
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -330,6 +426,7 @@ export function Header() {
             </button>
           </div>
         </div>
+        <Breadcrumbs />
       </div>
 
       {/* Mobile Menu */}

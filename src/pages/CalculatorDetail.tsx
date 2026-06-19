@@ -4,6 +4,7 @@ import * as Icons from 'lucide-react';
 import { CALCULATORS, CATEGORIES } from '../constants.ts';
 import { CalculatorWidget } from '../components/calculator.tsx';
 import { SEOArticleBlock } from '../components/SEOArticleBlock.tsx';
+import { ShareButton } from '../components/common.tsx';
 import * as Logic from '../lib/calculatorLogic.ts';
 import { CalculationInput } from '../types.ts';
 
@@ -1437,9 +1438,12 @@ export function CalculatorDetail() {
         <div className="lg:col-span-2 space-y-16">
           {/* Header */}
           <div className="space-y-4">
-            <h1 className="text-4xl md:text-5xl font-display font-extrabold text-heading">
-              {calculator.title}
-            </h1>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <h1 className="text-4xl md:text-5xl font-display font-extrabold text-heading">
+                {calculator.title}
+              </h1>
+              <ShareButton title={calculator.title} text={calculator.description} />
+            </div>
             <p className="text-lg text-body leading-relaxed max-w-2xl">
               {calculator.description}
             </p>

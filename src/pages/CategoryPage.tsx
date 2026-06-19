@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { CATEGORIES, CALCULATORS } from '../constants.ts';
+import { ShareButton } from '../components/common.tsx';
 
 export function CategoryPage() {
   const { catId } = useParams();
@@ -58,9 +59,12 @@ export function CategoryPage() {
         <div className="w-16 h-16 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
           <Icon className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold text-heading">
-          {category.title} <span className="text-primary italic">Tools</span>
-        </h1>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold text-heading">
+            {category.title} <span className="text-primary italic">Tools</span>
+          </h1>
+          <ShareButton title={`${category.title} Tools`} text={`Explore our collection of precise and free calculators specialized for ${category.title.toLowerCase()}.`} />
+        </div>
         <p className="text-lg text-body max-w-2xl mx-auto mb-8">
           Explore our collection of precise and free calculators specialized for {category.title.toLowerCase()}. Optimized for accuracy and ease of use.
         </p>
